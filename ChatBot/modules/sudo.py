@@ -1,8 +1,8 @@
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from ChatBot import app
 from ChatBot.database.sudo import add_sudo, remove_sudo, get_sudoers
 from config import OWNER_ID
-from ChatBot import app
 
 sudo_confirm_data = {}
 
@@ -26,7 +26,7 @@ async def extract_user_id(message: Message) -> int:
     return None
 
 
-@Client.on_message(filters.command("addsudo") & filters.user(OWNER_ID))
+@app.on_message(filters.command("addsudo") & filters.user(OWNER_ID))
 async def addsudo_cmd(client, message):
     user_id = await extract_user_id(message)
     if not user_id:
@@ -42,7 +42,7 @@ async def addsudo_cmd(client, message):
     await message.reply(f"Do you want to add `{user_id}` to the SUDO list?", reply_markup=keyboard)
 
 
-@Client.on_message(filters.command("delsudo") & filters.user(OWNER_ID))
+@app.on_message(filters.command("delsudo") & filters.user(OWNER_ID))
 async def delsudo_cmd(client, message):
     user_id = await extract_user_id(message)
     if not user_id:
@@ -58,7 +58,7 @@ async def delsudo_cmd(client, message):
     await message.reply(f"Do you want to remove `{user_id}` from the SUDO list?", reply_markup=keyboard)
 
 
-@Client.on_callback_query(filters.regex(r"confirm_sudo:(\d+):(yes|no)"))
+@app.on_callback_query(filters.regex(r"confirm_sudo:(\d+):(yes|no)"))
 async def confirm_sudo_callback(client, callback_query: CallbackQuery):
     _, msg_id, decision = callback_query.data.split(":")
     msg_id = int(msg_id)
@@ -82,7 +82,8 @@ async def confirm_sudo_callback(client, callback_query: CallbackQuery):
     else:
         await callback_query.message.edit_text("❌ Action cancelled.")
 
-@Client.on_message(filters.command("sudolist"))
+
+@app.on_message(filters.command("sudolist"))
 async def sudolist_cmd(client, message):
     sudoers = await get_sudoers()
     if not sudoers:
