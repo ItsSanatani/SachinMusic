@@ -83,7 +83,7 @@ async def delete_edited_message(client, message: Message):
 
     if await is_admins(chat_id, user_id):
         return
-    if await is_auth(user_id):
+    if await is_auth(chat_id, user_id):
         return
     if not get_delete_status(chat_id):
         return
