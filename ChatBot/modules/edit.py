@@ -4,7 +4,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 import asyncio
 from pymongo import MongoClient
 
-from Chatbot import app
+from ChatBot import app
 from config import MONGO_URL, OTHER_LOGS  # OTHER_LOGS import किया गया
 
 mongo_client = MongoClient(MONGO_URL)
