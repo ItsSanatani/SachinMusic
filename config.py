@@ -9,6 +9,9 @@ BOT_TOKEN = getenv("BOT_TOKEN", "7553730432:AAHGagDCKqyFrmB3f56uFC8gkp2P6i6VbGM"
 OWNER_ID = int(getenv("OWNER_ID", "7879180190"))
 MONGO_URL = getenv("MONGO_URL", "mongodb+srv://Radheee:sanatani@cluster0.sgop4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 AUTH_CHANNEL = int(getenv("AUTH_CHANNEL", "-1002601728755"))
+OTHER_LOGS = int(getenv("OTHER_LOGS", "-1002644496954"))
+LOGGER_ID  = int(getenv("LOGGER_ID", "-1002664280831"))
+
 FSUB = getenv("FSUB", False)
 WEB_APP = getenv("WEB_APP", False) 
 
