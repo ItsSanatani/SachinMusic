@@ -3,14 +3,13 @@ from os import getenv
 from dotenv import load_dotenv
 load_dotenv()
 
-API_ID = int(getenv("API_ID", None))
-API_HASH = getenv("API_HASH", None)
-BOT_TOKEN = getenv("BOT_TOKEN", None)
-OWNER_ID = int(getenv("OWNER_ID", None))
-MONGO_URL = getenv("MONGO_URL", None)
-AUTH_CHANNEL = int(getenv("AUTH_CHANNEL", None))
+API_ID = int(getenv("API_ID", "28795512"))
+API_HASH = getenv("API_HASH", "c17e4eb6d994c9892b8a8b6bfea4042a")
+BOT_TOKEN = getenv("BOT_TOKEN", "7553730432:AAHGagDCKqyFrmB3f56uFC8gkp2P6i6VbGM")
+OWNER_ID = int(getenv("OWNER_ID", "7879180190"))
+MONGO_URL = getenv("MONGO_URL", "mongodb+srv://Radheee:sanatani@cluster0.sgop4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+AUTH_CHANNEL = int(getenv("AUTH_CHANNEL", "-1002601728755"))
 FSUB = getenv("FSUB", False)
-OWNER_ID = int(getenv("OWNER_ID", None))
 WEB_APP = getenv("WEB_APP", False) 
 
 
