@@ -2,7 +2,7 @@ from pyrogram import Client, filters, enums
 from pyrogram.types import ChatPermissions, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import ChatAdminRequired, UserAdminInvalid, UserNotParticipant
 from functools import wraps
-from SachinMusic import app
+from ChatBot import app
 
 def mention(user_id, name):
     return f"{name}"
