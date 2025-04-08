@@ -1,7 +1,7 @@
 from pyrogram import filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from ChatBot import app
-from ChatBot.database.auth import add_auth, remove_auth
+from ChatBot.database.auth import add_auth, remove_auth, get_auth_users 
 from ChatBot.database.admin import is_admins
 
 auth_confirm_data = {}
@@ -99,3 +99,25 @@ async def confirm_auth_action(client, callback_query: CallbackQuery):
             await callback_query.message.edit_text(f"❌ User `{user_id}` has been **unauthorized**.")
     else:
         await callback_query.message.edit_text("❌ Action cancelled.")
+
+@app.on_message(filters.command("authlist") & filters.group)
+async def authlist_handler(client, message: Message):
+    if not await is_admins(message.chat.id, message.from_user.id):
+        return await message.reply("❌ Only group owner or admins can use this command!")
+
+    chat_id = message.chat.id
+    users = await get_auth_users(chat_id)
+
+    if not users:
+        return await message.reply("⚠️ No users have been authorized in this group.")
+
+    text = "**Authorized users in this group:**\n\n"
+    for i, user_id in enumerate(users, start=1):
+        try:
+            user = await app.get_users(user_id)
+            name = user.mention(style="markdown")
+        except:
+            name = f"`{user_id}` (Unable to fetch)"
+        text += f"{i}. {name}\n"
+
+    await message.reply(text)
