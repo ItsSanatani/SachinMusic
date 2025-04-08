@@ -1,4 +1,3 @@
-from ChatBot.database.authdb import add_auth_user_db
 from . import authdb
 
 async def add_auth(user_id: int):
