@@ -8,11 +8,11 @@ from pyrogram.types import (
 )
 from pyrogram.errors import UserAlreadyParticipant, UserIsBlocked, PeerIdInvalid
 from ChatBot import app
-from config import MONGO_DB_URI
+from config import MONGO_URL
 from motor.motor_asyncio import AsyncIOMotorClient
 from ChatBot.database.admin import is_admin
 
-mongo_client = AsyncIOMotorClient(MONGO_DB_URI)
+mongo_client = AsyncIOMotorClient(MONGO_URL)
 db = mongo_client["JoinRequestDB"]
 joinmode_collection = db["JoinModes"]
 
