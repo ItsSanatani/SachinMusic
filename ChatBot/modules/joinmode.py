@@ -10,7 +10,7 @@ from pyrogram.errors import UserAlreadyParticipant, UserIsBlocked, PeerIdInvalid
 from ChatBot import app
 from config import MONGO_URL
 from motor.motor_asyncio import AsyncIOMotorClient
-from ChatBot.database.admin import is_admin
+from ChatBot.database.admin import is_admins
 
 mongo_client = AsyncIOMotorClient(MONGO_URL)
 db = mongo_client["JoinRequestDB"]
@@ -29,7 +29,7 @@ async def set_joinmode(chat_id: int, enabled: bool):
     )
 
 @app.on_message(filters.command("joinmode") & filters.group)
-@is_admin
+@is_admins
 async def toggle_join_mode(client, message: Message):
     await message.reply_text(
         "⚙️ sᴇʟᴇᴄᴛ ᴊᴏɪɴ ᴍᴏᴅᴇ :",
