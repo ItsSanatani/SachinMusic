@@ -1,13 +1,14 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 import config
 
-# Database connection
 ChatBot = AsyncIOMotorClient(config.MONGO_URL)
-db = ChatBot["ChattBot"]  # Database
-usersdb = db["users"]    # Users Collection
-chatsdb = db["chats"]    # Chats Collection
+db = ChatBot["ChattBot"]
 
-# Import functions for use in other parts of the application
+usersdb = db["users"]
+chatsdb = db["chats"]
+sudodb = db["sudo"]
+
 from .chats import *
 from .admin import *
 from .fsub import *
+from .sudo import *
