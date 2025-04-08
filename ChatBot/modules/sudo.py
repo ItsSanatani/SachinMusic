@@ -87,8 +87,12 @@ async def confirm_sudo_callback(client, callback_query: CallbackQuery):
 
 
 @app.on_message(filters.command("sudolist"))
-async def sudolist_cmd(client, message):
+async def sudolist_cmd(client, message: Message):
     sudoers = await get_sudoers()
+    
+    if message.from_user.id not in sudoers:
+        return await message.reply("❌ You are not authorized to view the SUDO list.")
+    
     if not sudoers:
         return await message.reply("No SUDO users found.")
 
@@ -101,4 +105,8 @@ async def sudolist_cmd(client, message):
             name = f"`{uid}`"
         text += f"• {name}\n"
 
-    await message.reply(text)
+    keyboard = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("❌ Close", callback_data="close")]]
+    )
+
+    await message.reply(text, reply_markup=keyboard)
