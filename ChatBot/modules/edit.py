@@ -84,6 +84,9 @@ async def delete_edited_message(client, message: Message):
     if await is_auth(user_id):
         return
 
+    if await is_admins(chat_id, user_id):
+        return
+
     if not get_delete_status(chat_id):
         return
 
@@ -91,10 +94,6 @@ async def delete_edited_message(client, message: Message):
         bot_member = await client.get_chat_member(chat_id, client.me.id)
         if not bot_member.privileges or not bot_member.privileges.can_delete_messages:
             return
-
-        user_member = await client.get_chat_member(chat_id, user_id)
-        if user_member.status in ["administrator", "creator"]:
-            return  # Ignore admins and owners
 
         old_text = message.text or "❖ ɴᴏ ᴛᴇxᴛ ᴀᴠᴀɪʟᴀʙʟᴇ"
         await asyncio.sleep(2)
