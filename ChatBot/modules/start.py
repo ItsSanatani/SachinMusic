@@ -38,12 +38,12 @@ I'm here to chat, vibe, and bring some fun to your day.
 💌 Add me to your group for even more excitement.  
 """,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton(text="ᴀᴅᴅ ᴍᴇ ʙᴀʙʏ", url=f"https://t.me/{app.username}?startgroup=true")],
+                [InlineKeyboardButton(text="Add Me in Your Group", url=f"https://t.me/{app.username}?startgroup=true")],
                 [
-                    InlineKeyboardButton(text="ᴄʜᴀɴɴᴇʟ", url="https://t.me/C0DE_SEARCH"),
-                    InlineKeyboardButton(text="sᴜᴘᴘᴏʀᴛ", url="https://t.me/AsuraaSupports")
+                    InlineKeyboardButton(text="Owner", user_id=config.OWNER_ID),
+                    InlineKeyboardButton(text="Update", url="https://t.me/Copyright_Community")
                 ],
-                [InlineKeyboardButton(text="ᴍʏ ᴄᴏᴍᴍᴀɴᴅs", callback_data="help")]
+                [InlineKeyboardButton(text="Help And Command", callback_data="help")]
             ])
         )
     elif m.chat.type in {ChatType.GROUP, ChatType.SUPERGROUP}:
@@ -72,7 +72,7 @@ async def help(client, m: Message):
     await m.reply(
         "Need help? Click below to see all my commands.",
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("📜 ᴄᴏᴍᴍᴀɴᴅs ᴀɴᴅ ɢᴜɪᴅᴇ", url="http://t.me/MissAaru_Robot?start=help")]
+            [InlineKeyboardButton("📜 Help And Command", url=f"http://t.me/{app.username}?start=help")]
         ])
     )
 
@@ -96,10 +96,10 @@ I'm here to chat, vibe, and bring some fun to your day.
                 await query.message.edit_text(
                     new_text,
                     reply_markup=InlineKeyboardMarkup([
-                        [InlineKeyboardButton(text="ᴀᴅᴅ ᴍᴇ ʙᴀʙʏ", url="https://t.me/MissAaru_Robot?startgroup=true")],
+                        [InlineKeyboardButton(text="ᴀᴅᴅ ᴍᴇ ʙᴀʙʏ", url=f"https://t.me/{app.username}?startgroup=true")],
                         [
-                            InlineKeyboardButton(text="ᴄʜᴀɴɴᴇʟ", url="https://t.me/C0DE_SEARCH"),
-                            InlineKeyboardButton(text="sᴜᴘᴘᴏʀᴛ", url="https://t.me/AsuraaSupports")
+                            InlineKeyboardButton(text="Owner", user_id=config.OWNER_ID),
+                            InlineKeyboardButton(text="sᴜᴘᴘᴏʀᴛ", url="https://t.me/Copyright_Community")
                         ],
                         [InlineKeyboardButton(text="ᴍʏ ᴄᴏᴍᴍᴀɴᴅs", callback_data="help")]
                     ])
@@ -112,12 +112,7 @@ I'm here to chat, vibe, and bring some fun to your day.
 
 ⬤ /start ➥ Start me.  
 ⬤ /ping ➥ Check if I'm online.  
-⬤ /stats ➥ Get chat stats.  
-⬤ /chatbot ➥ Toggle AI replies (only works in groups). 
-⬤ /ask ➥ Provide me with a query to ask Aaru AI. 💖
-⬤ /kiss ➥ Get a virtual kiss from me. 😘  
-⬤ /hug ➥ Let me wrap you in a warm hug. 🤗 
-⬤ /waifu ➥ Want a cute waifu image? Just drop a tag, and I'll fetch one for you. 💕
+⬤ /stats ➥ Get chat stats.
 
 Stay sharp, stay awesome. ✨  
 """
@@ -128,7 +123,7 @@ Stay sharp, stay awesome. ✨
                     reply_markup=InlineKeyboardMarkup([
                         [
                             InlineKeyboardButton(text="ʙᴀᴄᴋ", callback_data="start"),
-                            InlineKeyboardButton(text="ᴄʜᴀɴɴᴇʟ", url="https://t.me/C0DE_SEARCH")
+                            InlineKeyboardButton(text="ᴄʜᴀɴɴᴇʟ", url="https://t.me/Copyright_Community")
                         ]
                     ])
                 )
