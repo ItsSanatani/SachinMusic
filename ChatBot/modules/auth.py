@@ -36,8 +36,8 @@ async def add_auth_command(client, message: Message):
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Yes", callback_data=f"auth_confirm:{user.id}:yes"),
-            InlineKeyboardButton("❌ No", callback_data=f"auth_confirm:{user.id}:no")
+            InlineKeyboardButton("✅ Yes", callback_data=f"auth_confirm|{user.id}|yes"),
+            InlineKeyboardButton("❌ No", callback_data=f"auth_confirm|{user.id}|no")
         ]
     ])
 
@@ -59,8 +59,8 @@ async def remove_auth_command(client, message: Message):
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Yes", callback_data=f"auth_confirm:{user.id}:yes"),
-            InlineKeyboardButton("❌ No", callback_data=f"auth_confirm:{user.id}:no")
+            InlineKeyboardButton("✅ Yes", callback_data=f"auth_confirm|{user.id}|yes"),
+            InlineKeyboardButton("❌ No", callback_data=f"auth_confirm|{user.id}|no")
         ]
     ])
 
@@ -69,9 +69,13 @@ async def remove_auth_command(client, message: Message):
         reply_markup=keyboard
     )
 
-@app.on_callback_query(filters.regex(r"auth_confirm:(\d+):(yes|no)"))
+@app.on_callback_query(filters.regex(r"^auth_confirm\|(\d+)\|(yes|no)$"))
 async def confirm_auth_action(client, callback_query: CallbackQuery):
-    user_id, decision = callback_query.data.split(":")[1:]
+    parts = callback_query.data.split("|")
+    if len(parts) != 3:
+        return await callback_query.answer("Invalid data!", show_alert=True)
+
+    _, user_id, decision = parts
     data = auth_confirm_data.get(user_id)
 
     if not data:
