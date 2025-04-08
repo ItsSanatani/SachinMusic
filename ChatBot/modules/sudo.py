@@ -32,7 +32,7 @@ async def addsudo_cmd(client, message):
     if not user_id:
         return await message.reply("Please specify a user to add to the SUDO list!")
 
-    sudo_confirm_data[message.id] = {"action": "add", "user_id": user_id}
+    sudo_confirm_data[str(message.id)] = {"action": "add", "user_id": user_id}
     keyboard = InlineKeyboardMarkup(
         [[
             InlineKeyboardButton("✅ Yes", callback_data=f"confirm_sudo:{message.id}:yes"),
@@ -48,7 +48,7 @@ async def delsudo_cmd(client, message):
     if not user_id:
         return await message.reply("Please specify a user to remove from the SUDO list!")
 
-    sudo_confirm_data[message.id] = {"action": "remove", "user_id": user_id}
+    sudo_confirm_data[str(message.id)] = {"action": "remove", "user_id": user_id}
     keyboard = InlineKeyboardMarkup(
         [[
             InlineKeyboardButton("✅ Yes", callback_data=f"confirm_sudo:{message.id}:yes"),
@@ -58,10 +58,12 @@ async def delsudo_cmd(client, message):
     await message.reply(f"Do you want to remove `{user_id}` from the SUDO list?", reply_markup=keyboard)
 
 
-@app.on_callback_query(filters.regex(r"confirm_sudo:(\d+):(yes|no)"))
+@app.on_callback_query(filters.callback_data.startswith("confirm_sudo:"))
 async def confirm_sudo_callback(client, callback_query: CallbackQuery):
-    _, msg_id, decision = callback_query.data.split(":")
-    msg_id = int(msg_id)
+    try:
+        _, msg_id, decision = callback_query.data.split(":")
+    except Exception:
+        return await callback_query.answer("Invalid data!", show_alert=True)
 
     if callback_query.from_user.id != OWNER_ID:
         return await callback_query.answer("Only the OWNER can confirm this action!", show_alert=True)
