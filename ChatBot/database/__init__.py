@@ -3,7 +3,7 @@ import config
 
 # Database connection
 ChatBot = AsyncIOMotorClient(config.MONGO_URL)
-db = ChatBot["ChatBot"]  # Database
+db = ChatBot["ChattBot"]  # Database
 usersdb = db["users"]    # Users Collection
 chatsdb = db["chats"]    # Chats Collection
 
@@ -11,5 +11,3 @@ chatsdb = db["chats"]    # Chats Collection
 from .chats import *
 from .admin import *
 from .fsub import *
-from .aaru import *
-from .chatbot import *
