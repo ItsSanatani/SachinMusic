@@ -1,4 +1,4 @@
-from . import authusersdb
+from . import authdb
 
 async def add_auth(user_id: int):
     user = await authdb.find_one({"user_id": user_id})
