@@ -30,7 +30,7 @@ async def edit_toggle(client, message: Message):
 
     if not await is_admins(chat_id, user_id):
         return await message.reply_text(
-            "❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀɴ ᴀᴅᴍɪɴ ᴏʀ ᴀᴜᴛʜᴏʀɪᴢᴇᴅ ᴜsᴇʀ !!",
+            "❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀɴ ᴀᴅᴍɪɴ !!",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]])
         )
 
@@ -75,18 +75,16 @@ async def handle_callback(client, callback_query):
         except:
             pass
 
-# Delete edited message if not admin/owner
+# Delete edited message if not admin/auth
 @app.on_edited_message(filters.group & ~filters.me)
 async def delete_edited_message(client, message: Message):
     chat_id = message.chat.id
     user_id = message.from_user.id
 
-    if await is_auth(user_id):
-        return
-
     if await is_admins(chat_id, user_id):
         return
-
+    if await is_auth(user_id):
+        return
     if not get_delete_status(chat_id):
         return
 
