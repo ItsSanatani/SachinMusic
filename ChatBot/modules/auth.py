@@ -32,7 +32,8 @@ async def add_auth_command(client, message: Message):
     if not user:
         return await message.reply("Reply to a user or give a valid username/user ID!")
 
-    auth_confirm_data[str(user.id)] = {"action": "add", "chat_id": message.chat.id}
+    key = f"{message.chat.id}:{user.id}"
+    auth_confirm_data[key] = {"action": "add", "chat_id": message.chat.id}
 
     keyboard = InlineKeyboardMarkup([
         [
@@ -55,7 +56,8 @@ async def remove_auth_command(client, message: Message):
     if not user:
         return await message.reply("Reply to a user or give a valid username/user ID!")
 
-    auth_confirm_data[str(user.id)] = {"action": "remove", "chat_id": message.chat.id}
+    key = f"{message.chat.id}:{user.id}"
+    auth_confirm_data[key] = {"action": "remove", "chat_id": message.chat.id}
 
     keyboard = InlineKeyboardMarkup([
         [
@@ -75,18 +77,18 @@ async def confirm_auth_action(client, callback_query: CallbackQuery):
     if len(parts) != 3:
         return await callback_query.answer("Invalid data!", show_alert=True)
 
-    _, user_id, decision = parts
-    data = auth_confirm_data.get(user_id)
+    user_id, decision = parts[1], parts[2]
+    chat_id = callback_query.message.chat.id
+    key = f"{chat_id}:{user_id}"
 
+    data = auth_confirm_data.get(key)
     if not data:
-        return await callback_query.answer("Confirmation expired or invalid!", show_alert=True)
-
-    chat_id = data["chat_id"]
+        return await callback_query.answer("Confirmation expired or already used!", show_alert=True)
 
     if not await is_admins(chat_id, callback_query.from_user.id):
         return await callback_query.answer("❌ Only admins can confirm!", show_alert=True)
 
-    del auth_confirm_data[user_id]
+    del auth_confirm_data[key]
 
     if decision == "yes":
         if data["action"] == "add":
