@@ -7,7 +7,7 @@ from pyrogram.types import (
     InlineKeyboardButton, Message
 )
 from pyrogram.errors import UserAlreadyParticipant, UserIsBlocked, PeerIdInvalid
-from SachinMusic import app
+from ChatBot import app
 from config import MONGO_DB_URI
 from motor.motor_asyncio import AsyncIOMotorClient
 from ChatBot.database.admin import is_admin
