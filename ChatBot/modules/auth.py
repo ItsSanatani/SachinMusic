@@ -1,7 +1,7 @@
 from pyrogram import filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from ChatBot import app
-from ChatBot.database.auth import add_auth_user, remove_auth_user
+from ChatBot.database.auth import add_auth, remove_auth, get_auth_users
 from ChatBot.database.admin import is_admins
 
 auth_confirm_data = {}
