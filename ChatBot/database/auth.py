@@ -1,6 +1,4 @@
-from ChatBot import db
-
-authdb = db.authusers
+from . import authusersdb
 
 async def add_auth(user_id: int):
     user = await authdb.find_one({"user_id": user_id})
