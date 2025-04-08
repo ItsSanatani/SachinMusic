@@ -47,6 +47,7 @@ async def remove_auth_command(client, message: Message):
 
 @app.on_message(filters.command("authlist") & filters.group)
 async def authlist_handler(client, message: Message):
+    # Check if user is admin
     if not await is_admins(message.chat.id, message.from_user.id):
         return await message.reply("❌ Only group owner or admins can use this command!")
 
