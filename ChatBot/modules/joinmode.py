@@ -30,8 +30,10 @@ async def set_joinmode(chat_id: int, enabled: bool):
     )
 
 @app.on_message(filters.command("joinmode") & filters.group)
-@is_admins
 async def toggle_join_mode(client, message: Message):
+    if not await is_admins(message.chat.id, message.from_user.id):
+        return await message.reply_text("❌ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀɴ ᴀᴅᴍɪɴ.")
+    
     await message.reply_text(
         "⚙️ ᴊᴏɪɴ ᴍᴏᴅᴇ ᴍᴇɴᴜ:",
         reply_markup=InlineKeyboardMarkup([
