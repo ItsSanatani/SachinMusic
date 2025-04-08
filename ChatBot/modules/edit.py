@@ -1,11 +1,11 @@
-from functools import wraps
 from pyrogram import Client, filters, enums
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 import asyncio
 from pymongo import MongoClient
 
 from ChatBot import app
-from config import MONGO_URL, OTHER_LOGS  # OTHER_LOGS import किया गया
+from config import MONGO_URL, OTHER_LOGS
+from ChatBot.database.admin import is_admin  # Admin check
 
 mongo_client = MongoClient(MONGO_URL)
 db = mongo_client["SachinMusic"]
@@ -18,45 +18,44 @@ def get_delete_status(chat_id):
 def set_delete_status(chat_id, status):
     settings_col.update_one({"chat_id": chat_id}, {"$set": {"delete_enabled": status}}, upsert=True)
 
-def admin_required(func):
-    @wraps(func)
-    async def wrapper(client, message):
-        member = await client.get_chat_member(message.chat.id, message.from_user.id)
-        if member.status in [enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER] and member.privileges.can_restrict_members:
-            return await func(client, message)
-        else:
-            await message.reply_text(
-                "**❖ ʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴘᴇʀғᴏʀᴍ ᴛʜɪs ᴀᴄᴛɪᴏɴ !!**",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
-            )
-    return wrapper
-
 @app.on_message(filters.command("edit") & filters.group)
-@admin_required
 async def edit_toggle(client, message):
     chat_id = message.chat.id
 
+    if not await is_admin(chat_id, message.from_user.id):
+        return await message.reply_text(
+            "❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴅᴍɪɴ !!",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
+        )
+
     bot_member = await client.get_chat_member(chat_id, client.me.id)
     if not bot_member.privileges.can_delete_messages:
-        await message.reply(
+        return await message.reply(
             f"<b>❖ {message.from_user.mention}, </b>\n\n"
             f"<b>๏ ɪ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴅᴇʟᴇᴛᴇ ᴘᴇʀᴍɪssɪᴏɴ !!</b>\n"
             f"<b>๏ ᴩʟᴇᴀsᴇ ɢɪᴠᴇ ᴍᴇ ᴛʜɪs ᴩᴇʀᴍɪssɪᴏɴ ғɪʀsᴛ !!</b>",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
         )
-        return
-    
+
     status = "ON" if get_delete_status(chat_id) else "OFF"
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("ᴏɴ", callback_data="edit_on"),
          InlineKeyboardButton("ᴏғғ", callback_data="edit_off")],
         [InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]
     ])
-    await message.reply(f"❖ ᴇᴅɪᴛ ᴅᴇʟᴇᴛᴇ ғᴇᴀᴛᴜʀᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ {status}.", reply_markup=keyboard)
+    await message.reply(
+        f"❖ ᴇᴅɪᴛ ᴅᴇʟᴇᴛᴇ ғᴇᴀᴛᴜʀᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ {status}.",
+        reply_markup=keyboard
+    )
 
 @app.on_callback_query(filters.regex("^edit_"))
 async def handle_callback(client, callback_query):
     chat_id = callback_query.message.chat.id
+    user_id = callback_query.from_user.id
+
+    if not await is_admin(chat_id, user_id):
+        return await callback_query.answer("❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴅᴍɪɴ !!", show_alert=True)
+
     data = callback_query.data
 
     if data == "edit_on":
@@ -85,10 +84,10 @@ async def delete_edited_message(client, message):
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
             )
             return
-        
+
         chat_member = await client.get_chat_member(chat_id, message.from_user.id)
         if chat_member.status in ["administrator", "owner", "bot"]:
-            return  
+            return
 
         try:
             old_text = message.text or "❖ ɴᴏ ᴛᴇxᴛ ᴀᴠᴀɪʟᴀʙʟᴇ"
@@ -112,7 +111,7 @@ async def delete_edited_message(client, message):
             ])
 
             await client.send_message(OTHER_LOGS, log_text, reply_markup=log_buttons)
-          
+
             keyboard = InlineKeyboardMarkup([
                 [InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]
             ])
@@ -120,6 +119,8 @@ async def delete_edited_message(client, message):
                 f"<b>❖ ʜᴇʏ , {message.from_user.mention} !! </b>\n"
                 f"<b>๏ ʏᴏᴜ ᴇᴅɪᴛᴇᴅ ᴀ ᴍᴇssᴀɢᴇ, sᴏ ɪ ᴅᴇʟᴇᴛᴇᴅ ɪᴛ !!</b>\n\n"
                 f"<b>❖ ᴏɴ|ᴏғғ ᴄᴍᴍɴᴅ : /edit</b>\n"
-                f"<b>❖ ʟᴏɢs : [ʏᴏᴜʀ ʙɪᴏ ʟᴏɢs](https://t.me/YourLogger)</b>", reply_markup=keyboard)
+                f"<b>❖ ʟᴏɢs : [ʏᴏᴜʀ ʙɪᴏ ʟᴏɢs](https://t.me/YourLogger)</b>",
+                reply_markup=keyboard
+            )
         except Exception as e:
             print(f"❖ ᴇʀʀᴏʀ ᴅᴇʟᴇᴛɪɴɢ ᴍᴇssᴀɢᴇ: {e}")
