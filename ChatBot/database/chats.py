@@ -11,6 +11,7 @@ async def get_chats() -> dict:
 
     async for chat in chatsdb.find({"chat_id": {"$lt": 0}}):
         chats.append(chat["chat_id"])
+
     async for user in usersdb.find({"user_id": {"$gt": 0}}):
         users.append(user["user_id"])
 
@@ -22,14 +23,21 @@ async def get_chats() -> dict:
 
 async def add_user(user_id, username=None):
     """
-    Adds a user to the database if they don't already exist.
+    Adds or updates a user in the database.
     """
-    if not await usersdb.find_one({"user_id": user_id}):
-        await usersdb.insert_one({"user_id": user_id, "username": username})
+    await usersdb.update_one(
+        {"user_id": user_id},
+        {"$set": {"username": username}},
+        upsert=True
+    )
+
 
 async def add_chat(chat_id, title=None):
     """
-    Adds a chat to the database if it doesn't already exist.
+    Adds or updates a chat in the database.
     """
-    if not await chatsdb.find_one({"chat_id": chat_id}):
-        await chatsdb.insert_one({"chat_id": chat_id, "title": title})
+    await chatsdb.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"title": title}},
+        upsert=True
+    )
