@@ -8,6 +8,7 @@ from pyrogram.types import Message, CallbackQuery
 from ChatBot import app
 from config import OWNER_ID
 
+
 async def is_admins(chat_id: int, user_id: int) -> bool:
     if user_id == OWNER_ID:
         return True
@@ -15,21 +16,22 @@ async def is_admins(chat_id: int, user_id: int) -> bool:
         member = await app.get_chat_member(chat_id, user_id)
         return member.status in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]
     except Exception as e:
-        print(f"[is_admins Error] {e}")
+        print(f"[is_admins Error] chat_id={chat_id}, user_id={user_id} => {e}")
         return False
+
 
 def admin_only(func: Callable) -> Callable:
     @wraps(func)
     async def wrapper(c: Client, m: Union[Message, CallbackQuery]):
         try:
             user_id = m.from_user.id
-            if user_id == OWNER_ID:
-                return await func(c, m)
 
-            chat_id = m.message.chat.id if isinstance(m, CallbackQuery) else m.chat.id
-            member = await c.get_chat_member(chat_id, user_id)
+            if isinstance(m, CallbackQuery):
+                chat_id = m.message.chat.id
+            else:
+                chat_id = m.chat.id
 
-            if member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]:
+            if await is_admins(chat_id, user_id):
                 return await func(c, m)
             else:
                 if isinstance(m, CallbackQuery):
