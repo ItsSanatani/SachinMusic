@@ -58,12 +58,13 @@ async def delsudo_cmd(client, message):
     await message.reply(f"Do you want to remove `{user_id}` from the SUDO list?", reply_markup=keyboard)
 
 
-@app.on_callback_query(filters.regex(r"^confirm_sudo:\d+:(yes|no)$"))
+@app.on_callback_query(filters.regex(r"^confirm_sudo:(\d+):(yes|no)$"))
 async def confirm_sudo_callback(client, callback_query: CallbackQuery):
-    try:
-        _, msg_id, decision = callback_query.data.split(":")
-    except Exception:
-        return await callback_query.answer("Invalid data!", show_alert=True)
+    data_parts = callback_query.data.split(":")
+    if len(data_parts) != 3:
+        return await callback_query.answer("Invalid data format!", show_alert=True)
+
+    msg_id, decision = data_parts[1], data_parts[2]
 
     if callback_query.from_user.id != OWNER_ID:
         return await callback_query.answer("Only the OWNER can confirm this action!", show_alert=True)
