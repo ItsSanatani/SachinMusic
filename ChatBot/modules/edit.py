@@ -8,17 +8,21 @@ from config import MONGO_URL, OTHER_LOGS
 from ChatBot.database.auth import is_auth
 from ChatBot.database.admin import is_admins
 
+# Mongo Setup
 mongo_client = MongoClient(MONGO_URL)
-db = mongo_client["SachinMusic"]
+db = mongo_client["copyright"]
 settings_col = db["EditDeleteSettings"]
 
+# Get current delete setting
 def get_delete_status(chat_id):
     setting = settings_col.find_one({"chat_id": chat_id})
     return setting["delete_enabled"] if setting else True
 
+# Set delete status
 def set_delete_status(chat_id, status):
     settings_col.update_one({"chat_id": chat_id}, {"$set": {"delete_enabled": status}}, upsert=True)
 
+# Command to toggle the edit delete feature
 @app.on_message(filters.command("edit") & filters.group)
 async def edit_toggle(client, message: Message):
     chat_id = message.chat.id
@@ -27,7 +31,7 @@ async def edit_toggle(client, message: Message):
     if not await is_admins(chat_id, user_id):
         return await message.reply_text(
             "❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀɴ ᴀᴅᴍɪɴ ᴏʀ ᴀᴜᴛʜᴏʀɪᴢᴇᴅ ᴜsᴇʀ !!",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]])
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]])
         )
 
     try:
@@ -36,7 +40,7 @@ async def edit_toggle(client, message: Message):
             return await message.reply(
                 f"<b>❖ {message.from_user.mention}, </b>\n\n"
                 f"<b>๏ ɪ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴅᴇʟᴇᴛᴇ ᴘᴇʀᴍɪssɪᴏɴ !!</b>",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]]),
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]])
             )
     except:
         return
@@ -49,6 +53,7 @@ async def edit_toggle(client, message: Message):
     ])
     await message.reply(f"❖ ᴇᴅɪᴛ ᴅᴇʟᴇᴛᴇ ғᴇᴀᴛᴜʀᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ {status}.", reply_markup=keyboard)
 
+# Handle button actions
 @app.on_callback_query(filters.regex("^edit_"))
 async def handle_callback(client, callback_query):
     chat_id = callback_query.message.chat.id
@@ -70,6 +75,7 @@ async def handle_callback(client, callback_query):
         except:
             pass
 
+# Delete edited message if not admin/owner
 @app.on_edited_message(filters.group & ~filters.me)
 async def delete_edited_message(client, message: Message):
     chat_id = message.chat.id
@@ -87,8 +93,8 @@ async def delete_edited_message(client, message: Message):
             return
 
         user_member = await client.get_chat_member(chat_id, user_id)
-        if user_member.status in ["administrator", "owner", "bot"]:
-            return
+        if user_member.status in ["administrator", "creator"]:
+            return  # Ignore admins and owners
 
         old_text = message.text or "❖ ɴᴏ ᴛᴇxᴛ ᴀᴠᴀɪʟᴀʙʟᴇ"
         await asyncio.sleep(2)
