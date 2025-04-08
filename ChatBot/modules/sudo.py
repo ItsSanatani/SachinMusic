@@ -58,7 +58,7 @@ async def delsudo_cmd(client, message):
     await message.reply(f"Do you want to remove `{user_id}` from the SUDO list?", reply_markup=keyboard)
 
 
-@app.on_callback_query(filters.callback_data.startswith("confirm_sudo:"))
+@app.on_callback_query(filters.regex(r"^confirm_sudo:\d+:(yes|no)$"))
 async def confirm_sudo_callback(client, callback_query: CallbackQuery):
     try:
         _, msg_id, decision = callback_query.data.split(":")
