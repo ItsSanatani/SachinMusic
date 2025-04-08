@@ -1,68 +1,95 @@
 from pyrogram import filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from ChatBot import app
-from ChatBot.database.auth import add_auth, remove_auth, get_auth_users
+from ChatBot.database.auth import add_auth, remove_auth
 from ChatBot.database.admin import is_admins
 
 auth_confirm_data = {}
+
+def format_user(user):
+    username = f"@{user.username}" if user.username else "No Username"
+    mention = user.mention(style="markdown")
+    return f"**Name:** {mention}\n**User ID:** `{user.id}`\n**Username:** `{username}`"
+
+async def get_target_user(message: Message):
+    if message.reply_to_message:
+        return message.reply_to_message.from_user
+    elif len(message.command) > 1:
+        username = message.text.split(None, 1)[1].strip()
+        try:
+            user = await app.get_users(username)
+            return user
+        except:
+            return None
+    return None
 
 @app.on_message(filters.command("auth") & filters.group)
 async def add_auth_command(client, message: Message):
     if not await is_admins(message.chat.id, message.from_user.id):
         return await message.reply("❌ Only group owner or admins can use this command!")
 
-    if not message.reply_to_message:
-        return await message.reply("Reply to the user you want to authorize!")
+    user = await get_target_user(message)
+    if not user:
+        return await message.reply("Reply to a user or give a valid username/user ID!")
 
-    user_id = message.reply_to_message.from_user.id
-    auth_confirm_data[message.id] = {"action": "add", "user_id": user_id}
+    auth_confirm_data[str(user.id)] = {"action": "add", "chat_id": message.chat.id}
+
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Yes", callback_data=f"auth_confirm:{message.id}:yes"),
-            InlineKeyboardButton("❌ No", callback_data=f"auth_confirm:{message.id}:no")
+            InlineKeyboardButton("✅ Yes", callback_data=f"auth_confirm:{user.id}:yes"),
+            InlineKeyboardButton("❌ No", callback_data=f"auth_confirm:{user.id}:no")
         ]
     ])
-    await message.reply(f"Do you want to **authorize** `{user_id}`?", reply_markup=keyboard)
+
+    await message.reply(
+        f"Do you want to **authorize** this user?\n\n{format_user(user)}",
+        reply_markup=keyboard
+    )
 
 @app.on_message(filters.command("rmauth") & filters.group)
 async def remove_auth_command(client, message: Message):
     if not await is_admins(message.chat.id, message.from_user.id):
         return await message.reply("❌ Only group owner or admins can use this command!")
 
-    if not message.reply_to_message:
-        return await message.reply("Reply to the user you want to **unauthorize**!")
+    user = await get_target_user(message)
+    if not user:
+        return await message.reply("Reply to a user or give a valid username/user ID!")
 
-    user_id = message.reply_to_message.from_user.id
-    auth_confirm_data[message.id] = {"action": "remove", "user_id": user_id}
+    auth_confirm_data[str(user.id)] = {"action": "remove", "chat_id": message.chat.id}
+
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Yes", callback_data=f"auth_confirm:{message.id}:yes"),
-            InlineKeyboardButton("❌ No", callback_data=f"auth_confirm:{message.id}:no")
+            InlineKeyboardButton("✅ Yes", callback_data=f"auth_confirm:{user.id}:yes"),
+            InlineKeyboardButton("❌ No", callback_data=f"auth_confirm:{user.id}:no")
         ]
     ])
-    await message.reply(f"Do you want to **unauthorize** `{user_id}`?", reply_markup=keyboard)
+
+    await message.reply(
+        f"Do you want to **unauthorize** this user?\n\n{format_user(user)}",
+        reply_markup=keyboard
+    )
 
 @app.on_callback_query(filters.regex(r"auth_confirm:(\d+):(yes|no)"))
 async def confirm_auth_action(client, callback_query: CallbackQuery):
-    _, msg_id, decision = callback_query.data.split(":")
-    msg_id = int(msg_id)
+    user_id, decision = callback_query.data.split(":")[1:]
+    data = auth_confirm_data.get(user_id)
 
-    if msg_id not in auth_confirm_data:
+    if not data:
         return await callback_query.answer("Confirmation expired or invalid!", show_alert=True)
 
-    data = auth_confirm_data.pop(msg_id)
+    chat_id = data["chat_id"]
 
-    if not await is_admins(callback_query.message.chat.id, callback_query.from_user.id):
+    if not await is_admins(chat_id, callback_query.from_user.id):
         return await callback_query.answer("❌ Only admins can confirm!", show_alert=True)
 
-    user_id = data["user_id"]
+    del auth_confirm_data[user_id]
 
     if decision == "yes":
         if data["action"] == "add":
-            await add_auth(user_id)
-            await callback_query.message.edit_text(f"✅ `{user_id}` has been authorized.")
+            await add_auth(int(user_id))
+            await callback_query.message.edit_text(f"✅ User `{user_id}` has been **authorized**.")
         else:
-            await remove_auth(user_id)
-            await callback_query.message.edit_text(f"❌ `{user_id}` has been unauthorized.")
+            await remove_auth(int(user_id))
+            await callback_query.message.edit_text(f"❌ User `{user_id}` has been **unauthorized**.")
     else:
         await callback_query.message.edit_text("❌ Action cancelled.")
