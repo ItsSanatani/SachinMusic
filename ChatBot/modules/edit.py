@@ -1,3 +1,4 @@
+from functools import wraps
 from pyrogram import Client, filters, enums
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 import asyncio
@@ -5,7 +6,9 @@ from pymongo import MongoClient
 
 from ChatBot import app
 from config import MONGO_URL, OTHER_LOGS
-from ChatBot.database.admin import is_admin  # Admin check
+
+from ChatBot.database.auth import is_auth
+from ChatBot.database.admin import is_admin
 
 mongo_client = MongoClient(MONGO_URL)
 db = mongo_client["SachinMusic"]
@@ -19,23 +22,25 @@ def set_delete_status(chat_id, status):
     settings_col.update_one({"chat_id": chat_id}, {"$set": {"delete_enabled": status}}, upsert=True)
 
 @app.on_message(filters.command("edit") & filters.group)
-async def edit_toggle(client, message):
+@is_admin
+async def edit_toggle(client, message: Message):
     chat_id = message.chat.id
 
-    if not await is_admin(chat_id, message.from_user.id):
+    if not await is_admin(message.from_user.id):
         return await message.reply_text(
-            "❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴅᴍɪɴ !!",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
+            "❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀɴ ᴀᴅᴍɪɴ ᴏʀ ᴀᴜᴛʜᴏʀɪᴢᴇᴅ ᴜsᴇʀ !!",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]])
         )
 
     bot_member = await client.get_chat_member(chat_id, client.me.id)
     if not bot_member.privileges.can_delete_messages:
-        return await message.reply(
+        await message.reply(
             f"<b>❖ {message.from_user.mention}, </b>\n\n"
             f"<b>๏ ɪ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴅᴇʟᴇᴛᴇ ᴘᴇʀᴍɪssɪᴏɴ !!</b>\n"
             f"<b>๏ ᴩʟᴇᴀsᴇ ɢɪᴠᴇ ᴍᴇ ᴛʜɪs ᴩᴇʀᴍɪssɪᴏɴ ғɪʀsᴛ !!</b>",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
         )
+        return
 
     status = "ON" if get_delete_status(chat_id) else "OFF"
     keyboard = InlineKeyboardMarkup([
@@ -43,20 +48,15 @@ async def edit_toggle(client, message):
          InlineKeyboardButton("ᴏғғ", callback_data="edit_off")],
         [InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]
     ])
-    await message.reply(
-        f"❖ ᴇᴅɪᴛ ᴅᴇʟᴇᴛᴇ ғᴇᴀᴛᴜʀᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ {status}.",
-        reply_markup=keyboard
-    )
+    await message.reply(f"❖ ᴇᴅɪᴛ ᴅᴇʟᴇᴛᴇ ғᴇᴀᴛᴜʀᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ {status}.", reply_markup=keyboard)
 
 @app.on_callback_query(filters.regex("^edit_"))
 async def handle_callback(client, callback_query):
     chat_id = callback_query.message.chat.id
-    user_id = callback_query.from_user.id
-
-    if not await is_admin(chat_id, user_id):
-        return await callback_query.answer("❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴅᴍɪɴ !!", show_alert=True)
-
     data = callback_query.data
+
+    if not await is_admin(callback_query.from_user.id):
+        return await callback_query.answer("❖ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴜᴛʜᴏʀɪᴢᴇᴅ !!", show_alert=True)
 
     if data == "edit_on":
         set_delete_status(chat_id, True)
@@ -71,56 +71,55 @@ async def handle_callback(client, callback_query):
             pass
 
 @app.on_edited_message(filters.group & ~filters.me)
-async def delete_edited_message(client, message):
+async def delete_edited_message(client, message: Message):
     chat_id = message.chat.id
-    if get_delete_status(chat_id):
 
-        bot_member = await client.get_chat_member(chat_id, client.me.id)
-        if not bot_member.privileges.can_delete_messages:
-            await message.reply(
-                f"<b>❖ {message.from_user.mention}, !</b>\n\n"
-                f"<b>๏ ɪ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴅᴇʟᴇᴛᴇ ᴘᴇʀᴍɪssɪᴏɴ !</b>\n"
-                f"<b>๏ ᴩʟᴇᴀsᴇ ɢɪᴠᴇ ᴍᴇ ᴛʜɪs ᴩᴇʀᴍɪssɪᴏɴ ғɪʀsᴛ !!</b>",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
-            )
-            return
+    if await is_auth(message.from_user.id):
+        return  # Ignore authorized users
 
-        chat_member = await client.get_chat_member(chat_id, message.from_user.id)
-        if chat_member.status in ["administrator", "owner", "bot"]:
-            return
+    if not get_delete_status(chat_id):
+        return
 
-        try:
-            old_text = message.text or "❖ ɴᴏ ᴛᴇxᴛ ᴀᴠᴀɪʟᴀʙʟᴇ"
-            await asyncio.sleep(2)
-            await message.delete()
+    bot_member = await client.get_chat_member(chat_id, client.me.id)
+    if not bot_member.privileges.can_delete_messages:
+        return
 
-            log_text = (
-                f"**❖ ᴇᴅɪᴛᴇᴅ ᴍᴇssᴀɢᴇ ᴅᴇʟᴇᴛᴇᴅ !!**\n\n"
-                f"**๏ ᴜsᴇʀ :** {message.from_user.first_name} ({message.from_user.id})\n"
-                f"**๏ ᴜsᴇʀɴᴀᴍᴇ :** @{message.from_user.username if message.from_user.username else 'ɴᴏɴᴇ'}\n"
-                f"**๏ ᴍᴇɴᴛɪᴏɴ :** {message.from_user.mention}\n"
-                f"**๏ ɢʀᴏᴜᴘ :** {message.chat.title}\n"
-                f"**๏ ᴄʜᴀᴛ ɪᴅ :** ({message.chat.id})\n"
-                f"**๏ ᴏʟᴅ ᴍᴇssᴀɢᴇ :**`{old_text}`\n"
-                f"**๏ ᴇᴅɪᴛᴇᴅ ᴍᴇssᴀɢᴇ :**`{message.text}`\n\n"
-                f"**❖ ʙᴏᴛ ɴᴀᴍᴇ :  @{app.username} **"
-            )
+    chat_member = await client.get_chat_member(chat_id, message.from_user.id)
+    if chat_member.status in ["administrator", "owner", "bot"]:
+        return
 
-            log_buttons = InlineKeyboardMarkup([
-                [InlineKeyboardButton("ᴀᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url=f"https://t.me/{app.username}?startgroup=s&admin=delete_messages+manage_video_chats+pin_messages+invite_users+ban_users")]
-            ])
+    try:
+        old_text = message.text or "❖ ɴᴏ ᴛᴇxᴛ ᴀᴠᴀɪʟᴀʙʟᴇ"
+        await asyncio.sleep(2)
+        await message.delete()
 
-            await client.send_message(OTHER_LOGS, log_text, reply_markup=log_buttons)
+        log_text = (
+            f"**❖ ᴇᴅɪᴛᴇᴅ ᴍᴇssᴀɢᴇ ᴅᴇʟᴇᴛᴇᴅ !!**\n\n"
+            f"**๏ ᴜsᴇʀ :** {message.from_user.first_name} ({message.from_user.id})\n"
+            f"**๏ ᴜsᴇʀɴᴀᴍᴇ :** @{message.from_user.username if message.from_user.username else 'ɴᴏɴᴇ'}\n"
+            f"**๏ ᴍᴇɴᴛɪᴏɴ :** {message.from_user.mention}\n"
+            f"**๏ ɢʀᴏᴜᴘ :** {message.chat.title}\n"
+            f"**๏ ᴄʜᴀᴛ ɪᴅ :** ({message.chat.id})\n"
+            f"**๏ ᴏʟᴅ ᴍᴇssᴀɢᴇ :**`{old_text}`\n"
+            f"**๏ ᴇᴅɪᴛᴇᴅ ᴍᴇssᴀɢᴇ :**`{message.text}`\n\n"
+            f"**❖ ʙᴏᴛ ɴᴀᴍᴇ :  @{app.username} **"
+        )
 
-            keyboard = InlineKeyboardMarkup([
-                [InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]
-            ])
-            await message.reply(
-                f"<b>❖ ʜᴇʏ , {message.from_user.mention} !! </b>\n"
-                f"<b>๏ ʏᴏᴜ ᴇᴅɪᴛᴇᴅ ᴀ ᴍᴇssᴀɢᴇ, sᴏ ɪ ᴅᴇʟᴇᴛᴇᴅ ɪᴛ !!</b>\n\n"
-                f"<b>❖ ᴏɴ|ᴏғғ ᴄᴍᴍɴᴅ : /edit</b>\n"
-                f"<b>❖ ʟᴏɢs : [ʏᴏᴜʀ ʙɪᴏ ʟᴏɢs](https://t.me/YourLogger)</b>",
-                reply_markup=keyboard
-            )
-        except Exception as e:
-            print(f"❖ ᴇʀʀᴏʀ ᴅᴇʟᴇᴛɪɴɢ ᴍᴇssᴀɢᴇ: {e}")
+        log_buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("ᴀᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url=f"https://t.me/{app.username}?startgroup=s&admin=delete_messages+manage_video_chats+pin_messages+invite_users+ban_users")]
+        ])
+
+        await client.send_message(OTHER_LOGS, log_text, reply_markup=log_buttons)
+
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]
+        ])
+        await message.reply(
+            f"<b>❖ ʜᴇʏ , {message.from_user.mention} !! </b>\n"
+            f"<b>๏ ʏᴏᴜ ᴇᴅɪᴛᴇᴅ ᴀ ᴍᴇssᴀɢᴇ, sᴏ ɪ ᴅᴇʟᴇᴛᴇᴅ ɪᴛ !!</b>\n\n"
+            f"<b>❖ ᴏɴ|ᴏғғ ᴄᴍᴍɴᴅ : /edit</b>\n"
+            f"<b>❖ ʟᴏɢs : [ʏᴏᴜʀ ʙɪᴏ ʟᴏɢs](https://t.me/YourLogger)</b>",
+            reply_markup=keyboard
+        )
+    except Exception as e:
+        print(f"❖ ᴇʀʀᴏʀ ᴅᴇʟᴇᴛɪɴɢ ᴍᴇssᴀɢᴇ: {e}")
