@@ -6,9 +6,8 @@ from ChatBot.database.admin import is_admins
 
 auth_confirm_data = {}
 
-
 @app.on_message(filters.command("auth") & filters.group)
-async def add_auth(client, message: Message):
+async def add_auth_command(client, message: Message):
     if not await is_admins(message.chat.id, message.from_user.id):
         return await message.reply("❌ Only group owner or admins can use this command!")
 
@@ -25,9 +24,8 @@ async def add_auth(client, message: Message):
     ])
     await message.reply(f"Do you want to **authorize** `{user_id}`?", reply_markup=keyboard)
 
-
 @app.on_message(filters.command("rmauth") & filters.group)
-async def remove_auth(client, message: Message):
+async def remove_auth_command(client, message: Message):
     if not await is_admins(message.chat.id, message.from_user.id):
         return await message.reply("❌ Only group owner or admins can use this command!")
 
@@ -43,7 +41,6 @@ async def remove_auth(client, message: Message):
         ]
     ])
     await message.reply(f"Do you want to **unauthorize** `{user_id}`?", reply_markup=keyboard)
-
 
 @app.on_callback_query(filters.regex(r"auth_confirm:(\d+):(yes|no)"))
 async def confirm_auth_action(client, callback_query: CallbackQuery):
@@ -62,10 +59,10 @@ async def confirm_auth_action(client, callback_query: CallbackQuery):
 
     if decision == "yes":
         if data["action"] == "add":
-            await add_auth_user(user_id)
+            await add_auth(user_id)
             await callback_query.message.edit_text(f"✅ `{user_id}` has been authorized.")
         else:
-            await remove_auth_user(user_id)
+            await remove_auth(user_id)
             await callback_query.message.edit_text(f"❌ `{user_id}` has been unauthorized.")
     else:
         await callback_query.message.edit_text("❌ Action cancelled.")
