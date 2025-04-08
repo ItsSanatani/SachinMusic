@@ -42,7 +42,7 @@ async def edit_toggle(client, message):
             f"<b>❖ {message.from_user.mention}, </b>\n\n"
             f"<b>๏ ɪ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴅᴇʟᴇᴛᴇ ᴘᴇʀᴍɪssɪᴏɴ !!</b>\n"
             f"<b>๏ ᴩʟᴇᴀsᴇ ɢɪᴠᴇ ᴍᴇ ᴛʜɪs ᴩᴇʀᴍɪssɪᴏɴ ғɪʀsᴛ !!</b>",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]]),
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
         )
         return
     
@@ -82,7 +82,7 @@ async def delete_edited_message(client, message):
                 f"<b>❖ {message.from_user.mention}, !</b>\n\n"
                 f"<b>๏ ɪ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴅᴇʟᴇᴛᴇ ᴘᴇʀᴍɪssɪᴏɴ !</b>\n"
                 f"<b>๏ ᴩʟᴇᴀsᴇ ɢɪᴠᴇ ᴍᴇ ᴛʜɪs ᴩᴇʀᴍɪssɪᴏɴ ғɪʀsᴛ !!</b>",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="edit_close")]]),
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]]),
             )
             return
         
