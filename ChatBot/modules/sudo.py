@@ -2,6 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from ChatBot.database.sudo import add_sudo, remove_sudo, get_sudoers
 from config import OWNER_ID
+from ChatBot import app
 
 sudo_confirm_data = {}
 
