@@ -7,7 +7,7 @@ db = ChatBot["ChattBot"]
 usersdb = db["users"]
 chatsdb = db["chats"]
 sudodb = db["sudo"]
-authusers = db["authdb"]
+authdb = db["authusers"]
 
 from .chats import *
 from .admin import *
