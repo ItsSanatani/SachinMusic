@@ -5,7 +5,7 @@ from pyrogram import Client, filters
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, Message
 from pyrogram.enums import ChatType
 
-from config import STICKER, FSUB, IMG
+from config import STICKER, FSUB, IMG, OWNER_ID
 from ChatBot import app
 from ChatBot.database import add_user, add_chat, get_fsub
 
