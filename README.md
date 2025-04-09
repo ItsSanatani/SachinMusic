@@ -19,7 +19,7 @@ Aaru ChatBot is an AI-powered Telegram bot designed to enhance user interactions
 Click the button below to deploy Aaru ChatBot on Heroku.
 If You show any error like failed to app Creation Then fork and deploy
 
-<a href="https://dashboard.heroku.com/new?template=https://github.com/CodeSearchDev/AaruChatBot">
+<a href="https://dashboard.heroku.com/new?template=https://github.com/ItsSanatani/SachinMusic">
 <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-008080?style=for-the-badge&logo=heroku" width="200"/>
 </a>
 
