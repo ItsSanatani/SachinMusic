@@ -5,6 +5,7 @@ dnspython
 tgcrypto
 asyncio
 python-dotenv
+pytz
 aiohttp
 cloudscraper
 flask
